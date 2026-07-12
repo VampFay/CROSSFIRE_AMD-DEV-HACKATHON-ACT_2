@@ -140,10 +140,10 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 from app.middleware.basic_auth import BasicAuthMiddleware
-from app.middleware.rate_limit import RateLimitMiddleware
-# RateLimit is the OUTERMOST middleware (runs first), Auth is INSIDE it.
+# Rate limiting disabled for demo — local model is free, no need to throttle
+# from app.middleware.rate_limit import RateLimitMiddleware
 app.add_middleware(BasicAuthMiddleware)
-app.add_middleware(RateLimitMiddleware, requests_per_minute=10, burst=20)
+# app.add_middleware(RateLimitMiddleware, requests_per_minute=10, burst=20)
 
 
 # ============================================================
