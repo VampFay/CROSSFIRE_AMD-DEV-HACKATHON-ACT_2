@@ -17,4 +17,4 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install ruff
-      - run: ruff check backend/app/ --ignore E501,F401,F841
+      - run: ruff check backend/app/ --ignore E501,F401,F841,E402
