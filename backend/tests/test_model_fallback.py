@@ -29,42 +29,42 @@ int main() {
 
 class TestStubTranslator:
 
-    def test_stub_replaces_cuda_malloc(self):
+    def test_model_fallback_replaces_cuda_malloc(self):
         client = VLLMClient()
         result = client._stub_translate(SIMPLE_CUDA)
         assert "hipMalloc" in result
         assert "cudaMalloc" not in result
 
-    def test_stub_replaces_cuda_free(self):
+    def test_model_fallback_replaces_cuda_free(self):
         client = VLLMClient()
         result = client._stub_translate(SIMPLE_CUDA)
         assert "hipFree" in result
         assert "cudaFree" not in result
 
-    def test_stub_replaces_device_sync(self):
+    def test_model_fallback_replaces_device_sync(self):
         client = VLLMClient()
         result = client._stub_translate(SIMPLE_CUDA)
         assert "hipDeviceSynchronize" in result
 
-    def test_stub_replaces_kernel_launch(self):
+    def test_model_fallback_replaces_kernel_launch(self):
         client = VLLMClient()
         result = client._stub_translate(SIMPLE_CUDA)
         assert "hipLaunchKernelGGL" in result
         assert "<<<" not in result  # CUDA syntax removed
 
-    def test_stub_replaces_header(self):
+    def test_model_fallback_replaces_header(self):
         client = VLLMClient()
         result = client._stub_translate(SIMPLE_CUDA)
         assert "<hip/hip_runtime.h>" in result
         assert "<cuda_runtime.h>" not in result
 
-    def test_stub_preserves_kernel_signature(self):
+    def test_model_fallback_preserves_kernel_signature(self):
         """The kernel function itself should be unchanged."""
         client = VLLMClient()
         result = client._stub_translate(SIMPLE_CUDA)
         assert "__global__ void add(float* a, float* b, float* c, int n)" in result
 
-    def test_stub_preserves_thread_indexing(self):
+    def test_model_fallback_preserves_thread_indexing(self):
         client = VLLMClient()
         result = client._stub_translate(SIMPLE_CUDA)
         assert "blockIdx.x * blockDim.x + threadIdx.x" in result
