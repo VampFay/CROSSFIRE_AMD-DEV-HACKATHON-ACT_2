@@ -1,0 +1,4 @@
+{
+  "status": "skip",
+  "reason": "PyTorch extension - requires PyTorch headers, standalone compile not supported"
+}

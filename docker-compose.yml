@@ -1,0 +1,226 @@
+# ============================================================
+# Crossfire — Full Stack Docker Compose
+# ============================================================
+# Usage:
+#   docker compose up -d                          # start everything
+#   docker compose logs -f api                    # tail API logs
+#   docker compose exec sandbox bash              # shell into ROCm sandbox
+#   docker compose down                           # stop
+#
+# Requirements:
+#   - AMD GPU with ROCm 7.2+ support (MI300X = gfx942)
+#   - Docker 24+ with compose v2
+#   - .env file (cp .env.example .env)
+
+services:
+  # ----------------------------------------------------------
+  # ROCm Sandbox — isolated compile + run + diff environment
+  # ----------------------------------------------------------
+  sandbox:
+    image: rocm/pytorch:rocm7.2.4_ubuntu24.04_py3.11_pytorch_3.0
+    container_name: crossfire-sandbox
+    devices:
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
+    group_add:
+      - video
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE
+    environment:
+      - PYTORCH_ROCM_ARCH=gfx942
+      # MI300X is gfx942 — NO HSA override needed.
+      # HSA_OVERRIDE_GFX_VERSION is only for MI100 (gfx908) / MI200 (gfx90a).
+    volumes:
+      - sandbox_workspace:/workspace
+      - ./samples:/samples:ro
+      - ./samples/baselines:/baselines:ro
+    working_dir: /workspace
+    command: sleep infinity
+    deploy:
+      resources:
+        reservations:
+          memory: 16G
+    networks:
+      - crossfire-net
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  # ----------------------------------------------------------
+  # vLLM — Local model serving (Gemma 4 12B on AMD MI300X)
+  # ----------------------------------------------------------
+  vllm:
+    image: rocm/vllm:rocm7.2.4
+    container_name: crossfire-vllm
+    devices:
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
+    group_add:
+      - video
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTORCH_ROCM_ARCH=gfx942
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
+    command: >
+      --model unsloth/gemma-4-12b-it
+      --dtype bfloat16
+      --tensor-parallel-size 1
+      --gpu-memory-utilization 0.85
+      --max-model-len 8192
+      --port 8001
+      --trust-remote-code
+    volumes:
+      - huggingface_cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          memory: 64G
+    networks:
+      - crossfire-net
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+
+  # ----------------------------------------------------------
+  # Redis — Job queue + WebSocket pubsub (internal only)
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: crossfire-redis
+    # No host port — internal only (security hardening)
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - crossfire-net
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ----------------------------------------------------------
+  # ChromaDB — RAG vector database (internal only)
+  # ----------------------------------------------------------
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: crossfire-chromadb
+    expose:
+      - "8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    networks:
+      - crossfire-net
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  # ----------------------------------------------------------
+  # API — FastAPI backend (serves standalone UI at /ui)
+  # ----------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crossfire-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - FIREWORKS_API_KEY=${FIREWORKS_API_KEY:-}
+      - VLLM_URL=http://vllm:8001
+      - VLLM_MODEL=${VLLM_MODEL:-unsloth/gemma-4-12b-it}
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - SANDBOX_CONTAINER=crossfire-sandbox
+      - PYTHONPATH=/app/backend
+      - ALLOW_STUB_FALLBACK=${ALLOW_STUB_FALLBACK:-false}
+      - ALLOW_STUB_SANDBOX=${ALLOW_STUB_SANDBOX:-false}
+    volumes:
+      - ./backend:/app/backend
+      - ./samples:/app/samples:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      sandbox:
+        condition: service_started
+      vllm:
+        condition: service_started  # API can start before vLLM fully loads
+    networks:
+      - crossfire-net
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ----------------------------------------------------------
+  # Worker — Background job processor (RQ)
+  # ----------------------------------------------------------
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crossfire-worker
+    env_file:
+      - .env
+    environment:
+      - FIREWORKS_API_KEY=${FIREWORKS_API_KEY:-}
+      - VLLM_URL=http://vllm:8001
+      - VLLM_MODEL=${VLLM_MODEL:-unsloth/gemma-4-12b-it}
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - SANDBOX_CONTAINER=crossfire-sandbox
+      - PYTHONPATH=/app/backend
+      - ALLOW_STUB_FALLBACK=${ALLOW_STUB_FALLBACK:-false}
+      - ALLOW_STUB_SANDBOX=${ALLOW_STUB_SANDBOX:-false}
+    volumes:
+      - ./backend:/app/backend
+      - ./samples:/app/samples:ro
+    command: rq worker crossfire-queue --url redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      vllm:
+        condition: service_started
+    networks:
+      - crossfire-net
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  sandbox_workspace:
+  huggingface_cache:
+  redis_data:
+  chroma_data:
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  crossfire-net:
+    driver: bridge

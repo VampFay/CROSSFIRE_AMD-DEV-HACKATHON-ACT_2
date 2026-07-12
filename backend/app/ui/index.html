@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crossfire — CUDA→ROCm Migration Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-0: #0a0a0f;
+  --bg-1: #12121a;
+  --bg-2: #1a1a25;
+  --bg-3: #22222e;
+  --border: #2a2a3a;
+  --border-light: #3a3a4a;
+  --text-0: #f0f0f5;
+  --text-1: #c0c0cc;
+  --text-2: #80808c;
+  --text-3: #50505c;
+  --amd-red: #ED1C24;
+  --amd-red-dim: #a01518;
+  --green: #00C46A;
+  --green-dim: #008848;
+  --orange: #FF9500;
+  --blue: #3B82F6;
+  --indigo: #6366F1;
+  --purple: #A855F7;
+  --emerald: #10B981;
+  --teal: #14B8A6;
+  --red: #EF4444;
+  --gray: #6B7280;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-0);
+  color: var(--text-0);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.mono { font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace; }
+a { color: var(--text-1); text-decoration: none; }
+a:hover { color: var(--amd-red); }
+
+/* ===== Header ===== */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.logo .x { color: var(--amd-red); }
+.header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; }
+.gpu-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 6px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 500;
+}
+.gpu-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+.gpu-badge.stub .dot { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+.gpu-badge.stub { color: var(--orange); }
+
+/* ===== Hero ===== */
+.hero { padding: 40px 24px 24px; max-width: 1400px; margin: 0 auto; }
+.hero h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; }
+.hero h1 .accent { color: var(--amd-red); }
+.hero p { color: var(--text-1); font-size: 15px; margin-bottom: 24px; }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat-tile {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px;
+}
+.stat-tile .label { font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.stat-tile .value { font-size: 24px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+.stat-tile .sub { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+/* ===== Workspace ===== */
+.workspace {
+  max-width: 1400px; margin: 0 auto; padding: 0 24px 48px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+@media (max-width: 968px) { .workspace { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+.panel {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden;
+}
+.panel-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 13px; font-weight: 600; color: var(--text-1);
+}
+.panel-body { padding: 16px; }
+
+/* ===== Input panel ===== */
+.input-controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+select, button, input[type="text"] {
+  background: var(--bg-2); border: 1px solid var(--border-light); color: var(--text-0);
+  padding: 8px 12px; border-radius: 6px; font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+select:hover, button:hover { border-color: var(--amd-red); }
+button.primary {
+  background: var(--amd-red); border-color: var(--amd-red); color: white; font-weight: 600;
+  padding: 10px 20px;
+}
+button.primary:hover { background: var(--amd-red-dim); border-color: var(--amd-red-dim); }
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+button.secondary { background: var(--bg-2); }
+.checkbox-row { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-1); }
+.checkbox-row input { accent-color: var(--amd-red); }
+.code-editor {
+  width: 100%; min-height: 360px; background: var(--bg-0); color: var(--text-0);
+  border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+  resize: vertical; outline: none; tab-size: 4;
+}
+.code-editor:focus { border-color: var(--amd-red); }
+
+/* ===== Output panel ===== */
+.output-panel { min-height: 400px; }
+.placeholder {
+  padding: 60px 24px; text-align: center; color: var(--text-2);
+}
+.placeholder svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.3; }
+.placeholder p { font-size: 14px; }
+
+/* Verification badge */
+.verification-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;
+  margin-bottom: 16px;
+}
+.verification-badge .icon { width: 18px; height: 18px; }
+.vl-analyzed { background: rgba(107,114,128,0.15); color: var(--gray); border: 1px solid var(--gray); }
+.vl-translated { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid var(--blue); }
+.vl-compiled { background: rgba(99,102,241,0.15); color: var(--indigo); border: 1px solid var(--indigo); }
+.vl-executed { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid var(--purple); }
+.vl-test_verified { background: rgba(0,196,106,0.15); color: var(--green); border: 1px solid var(--green); }
+.vl-differentially_verified { background: rgba(16,185,129,0.15); color: var(--emerald); border: 1px solid var(--emerald); }
+.vl-benchmarked { background: rgba(20,184,166,0.15); color: var(--teal); border: 1px solid var(--teal); }
+.vl-blocked { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid var(--red); }
+
+.stub-banner {
+  background: rgba(255,149,0,0.1); border: 1px solid var(--orange); border-radius: 8px;
+  padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: var(--orange);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* Status timeline */
+.timeline {
+  display: flex; align-items: center; gap: 4px; margin-bottom: 16px;
+  padding: 12px; background: var(--bg-0); border-radius: 8px;
+}
+.timeline-node {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  flex: 1; position: relative;
+}
+.timeline-node .circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--bg-3); border: 2px solid var(--border-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--text-2); transition: all 0.3s;
+}
+.timeline-node.active .circle { border-color: var(--amd-red); background: var(--amd-red); color: white; box-shadow: 0 0 12px var(--amd-red); }
+.timeline-node.done .circle { border-color: var(--green); background: var(--green); color: white; }
+.timeline-node .label { font-size: 10px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; }
+.timeline-node.active .label, .timeline-node.done .label { color: var(--text-0); }
+.timeline-line { flex: 0 0 20px; height: 2px; background: var(--border-light); }
+.timeline-line.done { background: var(--green); }
+
+/* Diff view */
+.diff-container {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+  background: var(--border); border-radius: 8px; overflow: hidden;
+  margin-bottom: 16px;
+}
+.diff-pane { background: var(--bg-0); padding: 0; }
+.diff-pane-header {
+  padding: 8px 12px; background: var(--bg-2); border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase;
+  letter-spacing: 0.05em; display: flex; justify-content: space-between;
+}
+.diff-pane pre {
+  padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;
+  white-space: pre; overflow-x: auto; max-height: 400px; color: var(--text-0);
+}
+.diff-line { display: block; }
+.diff-line.added { background: rgba(0,196,106,0.1); color: #7aff9c; }
+.diff-line.removed { background: rgba(239,68,68,0.1); color: #ff7a7a; }
+.diff-line-num { display: inline-block; width: 32px; color: var(--text-3); user-select: none; text-align: right; padding-right: 8px; }
+
+/* Code syntax (basic) */
+.syn-comment { color: #6a9955; }
+.syn-string { color: #ce9178; }
+.syn-keyword { color: #569cd6; }
+.syn-type { color: #4ec9b0; }
+
+/* Iteration cards */
+.iterations { margin-bottom: 16px; }
+.iter-card {
+  background: var(--bg-0); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; margin-bottom: 8px; font-size: 12px;
+}
+.iter-card .iter-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.iter-card .iter-num { font-weight: 600; color: var(--text-0); }
+.iter-card .iter-strat {
+  padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase;
+}
+.strat-mechanical { background: rgba(20,184,166,0.15); color: var(--teal); }
+.strat-agent_repaired { background: rgba(255,149,0,0.15); color: var(--orange); }
+.strat-llm_only { background: rgba(107,114,128,0.15); color: var(--gray); }
+.iter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; color: var(--text-1); }
+.iter-grid div { font-family: 'JetBrains Mono', monospace; }
+.iter-grid .ok { color: var(--green); }
+.iter-grid .fail { color: var(--red); }
+
+/* GPU attestation */
+.attestation {
+  background: var(--bg-0); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; margin-bottom: 16px; font-size: 12px;
+}
+.attestation-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.attestation-head .title { font-weight: 600; color: var(--text-0); display: flex; align-items: center; gap: 6px; }
+.attestation.stub .attestation-head .title { color: var(--orange); }
+.attestation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+.attestation-grid div { font-family: 'JetBrains Mono', monospace; color: var(--text-1); }
+.attestation-grid .key { color: var(--text-2); }
+
+/* Diff result */
+.diff-result {
+  background: var(--bg-0); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; margin-bottom: 16px; font-size: 13px;
+}
+.diff-result.success { border-left: 3px solid var(--green); }
+.diff-result.fail { border-left: 3px solid var(--red); }
+.diff-result .row { display: flex; justify-content: space-between; padding: 4px 0; font-family: 'JetBrains Mono', monospace; }
+.diff-result .row .key { color: var(--text-2); }
+.diff-result .row .val { color: var(--text-0); }
+
+/* Cost panel */
+.cost-panel {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  background: var(--bg-0); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; margin-bottom: 16px;
+}
+.cost-panel div { text-align: center; }
+.cost-panel .key { font-size: 10px; color: var(--text-2); text-transform: uppercase; margin-bottom: 4px; }
+.cost-panel .val { font-size: 16px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text-0); }
+.cost-panel .val.free { color: var(--green); }
+
+/* Live status */
+.live-status {
+  max-width: 1400px; margin: 0 auto; padding: 0 24px 48px;
+}
+.live-status .panel-body { min-height: 80px; }
+.ws-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.ws-indicator .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
+.ws-indicator.connected .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-line { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-1); padding: 2px 0; }
+.status-line .time { color: var(--text-3); margin-right: 8px; }
+
+/* Cache badge */
+.cache-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 6px; margin-bottom: 12px;
+  background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid var(--blue);
+  font-size: 12px; font-weight: 600;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border); padding: 24px;
+  text-align: center; color: var(--text-2); font-size: 13px;
+}
+footer a { margin: 0 8px; }
+
+/* Loading spinner */
+.spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid var(--border-light); border-top-color: var(--amd-red);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-0); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CROSSFIRE<span class="x">X</span></div>
+  <div class="header-right">
+    <div class="gpu-badge" id="gpuBadge">
+      <span class="dot"></span>
+      <span id="gpuBadgeText">Checking GPU…</span>
+    </div>
+    <a href="https://github.com/VampFay/CROSSFIRE_AMD-DEV-HACKATHON-ACT_2" target="_blank" title="GitHub">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.92 1.23 3.23 0 4.62-2.8 5.64-5.48 5.94.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12.01 12.01 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    </a>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Autonomous CUDA → <span class="accent">ROCm</span> Migration Agent</h1>
+  <p>Deterministic HIPIFY + LLM semantic repair + differential validation on AMD MI300X</p>
+  <div class="stats-row">
+    <div class="stat-tile"><div class="label">Translations Run</div><div class="value" id="statTotal">—</div><div class="sub" id="statTotalSub">loading…</div></div>
+    <div class="stat-tile"><div class="label">Verified on MI300X</div><div class="value" id="statVerified">—</div><div class="sub" id="statVerifiedSub">loading…</div></div>
+    <div class="stat-tile"><div class="label">Median Max Error</div><div class="value" id="statError">—</div><div class="sub">numerical diff</div></div>
+    <div class="stat-tile"><div class="label">Avg Agent Latency</div><div class="value" id="statLatency">—</div><div class="sub">end-to-end</div></div>
+  </div>
+</section>
+
+<section class="workspace">
+  <!-- ===== INPUT ===== -->
+  <div class="panel">
+    <div class="panel-header">
+      <span>CUDA Source Input</span>
+      <span class="mono" style="font-size:11px;color:var(--text-2)" id="inputSize">0 chars</span>
+    </div>
+    <div class="panel-body">
+      <div class="input-controls">
+        <select id="sampleSelect" style="flex:1;min-width:180px">
+          <option value="">— Select a CUDA sample —</option>
+        </select>
+        <button class="secondary" onclick="loadSample()">Load Sample</button>
+      </div>
+      <textarea class="code-editor mono" id="cudaInput" placeholder="// Paste CUDA code here, or load a sample above&#10;&#10;__global__ void vector_add(float* a, float* b, float* c, int n) {&#10;    int i = blockIdx.x * blockDim.x + threadIdx.x;&#10;    if (i < n) c[i] = a[i] + b[i];&#10;}"></textarea>
+      <div class="input-controls" style="margin-top:12px">
+        <button class="primary" id="translateBtn" onclick="doTranslate()" title="Async: returns immediately, polls for updates, shows live status">Translate</button>
+        <span id="elapsedTime" class="mono" style="font-size:12px;color:var(--text-2);margin-left:8px"></span>
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:var(--text-2)">
+        Tip: <strong>01_vector_add</strong>, <strong>02_saxpy</strong>, <strong>09_hello_world</strong> translate in &lt;5s via HIPIFY.
+        Complex samples (streams, flash_attn) may take 30-180s and use the LLM.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== OUTPUT ===== -->
+  <div class="panel output-panel">
+    <div class="panel-header">
+      <span>Translation Result</span>
+      <span class="mono" style="font-size:11px;color:var(--text-2)" id="jobIdLabel"></span>
+    </div>
+    <div class="panel-body" id="outputBody">
+      <div class="placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        <p>Translate CUDA code to see the result here.</p>
+        <p style="font-size:12px;margin-top:8px">Verification badge, HIP code, iteration timeline, GPU attestation, and diff will appear.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="live-status">
+  <div class="panel">
+    <div class="panel-header">
+      <span>Live Status</span>
+      <span class="ws-indicator" id="wsIndicator"><span class="dot"></span><span id="wsText">idle</span></span>
+    </div>
+    <div class="panel-body" id="liveStatus">
+      <div class="status-line" style="color:var(--text-2)">Status updates will appear here during translation.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Built for <strong>AMD Developer Hackathon: ACT II</strong> — Track 3 Unicorn</p>
+  <p style="margin-top:8px">
+    <a href="/docs">API Docs</a>·<a href="https://github.com/VampFay/CROSSFIRE_AMD-DEV-HACKATHON-ACT_2">GitHub</a>·<a href="/health">Health</a>
+  </p>
+</footer>
+
+<script>
+const API = '';
+let currentJobId = null;
+let ws = null;
+
+// ===== Init =====
+async function init() {
+  await Promise.all([loadSamples(), checkHealth(), loadStats()]);
+}
+
+async function loadSamples() {
+  try {
+    const res = await fetch(`${API}/api/samples`);
+    const data = await res.json();
+    const sel = document.getElementById('sampleSelect');
+    data.samples.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.filename;
+      opt.textContent = `${s.filename} (${s.size_human})`;
+      sel.appendChild(opt);
+    });
+  } catch (e) { console.error('loadSamples:', e); }
+}
+
+async function loadSample() {
+  const sel = document.getElementById('sampleSelect');
+  if (!sel.value) return;
+  try {
+    const res = await fetch(`${API}/api/samples/${sel.value}`);
+    const data = await res.json();
+    document.getElementById('cudaInput').value = data.source;
+    updateInputSize();
+  } catch (e) { console.error('loadSample:', e); }
+}
+
+function updateInputSize() {
+  const v = document.getElementById('cudaInput').value;
+  document.getElementById('inputSize').textContent = `${v.length} chars`;
+}
+
+async function checkHealth() {
+  try {
+    const res = await fetch(`${API}/health`);
+    const h = await res.json();
+    const badge = document.getElementById('gpuBadge');
+    const text = document.getElementById('gpuBadgeText');
+    if (h.amd_gpu_available) {
+      text.textContent = 'AMD MI300X';
+      badge.classList.remove('stub');
+    } else {
+      text.textContent = 'DEMO MODE (no GPU)';
+      badge.classList.add('stub');
+    }
+  } catch (e) {
+    document.getElementById('gpuBadgeText').textContent = 'API offline';
+  }
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/api/jobs/stats`);
+    const s = await res.json();
+    const total = s.total_jobs || 0;
+    const byVl = s.by_verification_level || {};
+    const verified = (byVl.test_verified || 0) + (byVl.differentially_verified || 0) + (byVl.benchmarked || 0);
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statTotalSub').textContent = `${s.storage} store`;
+    document.getElementById('statVerified').textContent = verified;
+    document.getElementById('statVerifiedSub').textContent = `${((total>0?verified/total:0)*100).toFixed(0)}% verified`;
+    // fetch recent jobs for median error + latency
+    const jobsRes = await fetch(`${API}/api/jobs?limit=50`);
+    const jobs = await jobsRes.json();
+    const done = jobs.filter(j => j.diff && j.diff.success && j.diff.max_abs_error != null);
+    if (done.length > 0) {
+      const errors = done.map(j => j.diff.max_abs_error).sort((a,b)=>a-b);
+      const med = errors[Math.floor(errors.length/2)];
+      document.getElementById('statError').textContent = med < 1e-10 ? '0.0' : med.toExponential(1);
+      const lats = jobs.filter(j=>j.total_latency_ms>0).map(j=>j.total_latency_ms).sort((a,b)=>a-b);
+      if (lats.length > 0) {
+        const medLat = lats[Math.floor(lats.length/2)];
+        document.getElementById('statLatency').textContent = medLat < 1000 ? `${medLat}ms` : `${(medLat/1000).toFixed(1)}s`;
+      }
+    } else {
+      document.getElementById('statError').textContent = '—';
+      document.getElementById('statLatency').textContent = '—';
+    }
+  } catch (e) { console.error('loadStats:', e); }
+}
+
+// ===== Translate (sync fallback — kept for debugging, not shown in UI) =====
+async function translateSync() {
+  const cuda = document.getElementById('cudaInput').value.trim();
+  if (!cuda) { alert('Please enter CUDA source code.'); return; }
+  const btn = document.getElementById('translateBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Translating…';
+  document.getElementById('outputBody').innerHTML = '<div class="placeholder"><div class="spinner" style="width:32px;height:32px;margin:0 auto 12px"></div><p>Translating (sync mode)…</p></div>';
+  document.getElementById('liveStatus').innerHTML = '';
+  document.getElementById('elapsedTime').textContent = '';
+  addStatusLine('Sync translate started — waiting for response...');
+  startElapsedTimer();
+  const ind = document.getElementById('wsIndicator');
+  const indText = document.getElementById('wsText');
+  indText.textContent = 'sync mode';
+  ind.classList.add('connected');
+
+  try {
+    const body = {
+      cuda_source: cuda,
+      filename: document.getElementById('sampleSelect').value || 'input.cu',
+      force_remote: document.getElementById('forceRemote').checked,
+      max_iterations: parseInt(document.getElementById('maxIter').value) || 5,
+    };
+    const res = await fetch(`${API}/api/translate-sync`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errText.slice(0,300)}`);
+    }
+    const r = await res.json();
+    stopElapsedTimer();
+    if (r.total_latency_ms > 0) {
+      const secs = (r.total_latency_ms / 1000).toFixed(1);
+      document.getElementById('elapsedTime').textContent = `✓ ${secs}s (${r.total_tokens} tokens)`;
+    }
+    addStatusLine(`Sync translate complete — status=${r.status}`);
+    renderResult(r);
+    loadStats();
+  } catch (e) {
+    console.error('sync translate error:', e);
+    stopElapsedTimer();
+    addStatusLine('ERROR: ' + e.message, true);
+    document.getElementById('outputBody').innerHTML = `<div class="placeholder"><p style="color:var(--red)">Error: ${e.message}</p></div>`;
+  } finally {
+    document.getElementById('translateBtn').disabled = false;
+  }
+}
+
+// ===== Translate =====
+let elapsedTimer = null;
+let translateStartTime = null;
+
+function startElapsedTimer() {
+  translateStartTime = Date.now();
+  const el = document.getElementById('elapsedTime');
+  elapsedTimer = setInterval(() => {
+    const secs = ((Date.now() - translateStartTime) / 1000).toFixed(1);
+    el.textContent = `⏱ ${secs}s`;
+  }, 100);
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+  if (translateStartTime) {
+    const secs = ((Date.now() - translateStartTime) / 1000).toFixed(1);
+    document.getElementById('elapsedTime').textContent = `✓ ${secs}s`;
+  }
+}
+
+async function doTranslate() {
+  const cuda = document.getElementById('cudaInput').value.trim();
+  if (!cuda) { alert('Please enter CUDA source code.'); return; }
+  const btn = document.getElementById('translateBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Translating…';
+  document.getElementById('outputBody').innerHTML = '<div class="placeholder"><div class="spinner" style="width:32px;height:32px;margin:0 auto 12px"></div><p>Submitting translation job…</p></div>';
+  document.getElementById('liveStatus').innerHTML = '';
+  document.getElementById('elapsedTime').textContent = '';
+  addStatusLine('Translate button clicked — submitting job…');
+  startElapsedTimer();
+
+  const ind = document.getElementById('wsIndicator');
+  const indText = document.getElementById('wsText');
+  indText.textContent = 'connecting…';
+
+  try {
+    const body = {
+      cuda_source: cuda,
+      filename: document.getElementById('sampleSelect').value || 'input.cu',
+      force_remote: false,
+      max_iterations: 3,
+    };
+    addStatusLine(`POST /api/translate (${body.cuda_source.length} chars, ${body.filename})`);
+    const res = await fetch(`${API}/api/translate`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
+    }
+    const data = await res.json();
+    currentJobId = data.job_id;
+    document.getElementById('jobIdLabel').textContent = data.job_id.slice(0,8);
+    addStatusLine('Job submitted — ' + data.job_id);
+    addStatusLine('Polling for updates…');
+    indText.textContent = 'polling';
+    ind.classList.add('connected');
+    pollJob(data.job_id);
+  } catch (e) {
+    console.error('translate error:', e);
+    addStatusLine('ERROR: ' + e.message, true);
+    stopElapsedTimer();
+    document.getElementById('outputBody').innerHTML = `<div class="placeholder"><p style="color:var(--red)">Error: ${e.message}</p></div>`;
+    btn.disabled = false; btn.textContent = 'Translate';
+    indText.textContent = 'error';
+    ind.classList.remove('connected');
+  }
+}
+
+function connectWS(jobId) {
+  const wsUrl = `ws://${window.location.host}/ws/jobs/${jobId}`;
+  ws = new WebSocket(wsUrl);
+  const ind = document.getElementById('wsIndicator');
+  const indText = document.getElementById('wsText');
+  ws.onopen = () => { ind.classList.add('connected'); indText.textContent = 'connected'; };
+  ws.onclose = () => { ind.classList.remove('connected'); indText.textContent = 'disconnected'; };
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    if (msg.type === 'status') {
+      addStatusLine(`[${msg.data.state}] iteration ${msg.data.iteration || 0}`);
+    } else if (msg.type === 'result') {
+      renderResult(msg.data);
+      addStatusLine('[done] result received');
+      document.getElementById('translateBtn').disabled = false;
+      document.getElementById('translateBtn').textContent = 'Translate';
+      loadStats();
+    } else if (msg.type === 'error') {
+      addStatusLine('[error] ' + (msg.data.message || 'unknown'), true);
+    }
+  };
+  ws.onerror = () => { indText.textContent = 'error'; };
+}
+
+function addStatusLine(text, isError) {
+  const div = document.getElementById('liveStatus');
+  const line = document.createElement('div');
+  line.className = 'status-line';
+  if (isError) line.style.color = 'var(--red)';
+  const t = new Date().toLocaleTimeString();
+  line.innerHTML = `<span class="time">${t}</span>${text}`;
+  div.appendChild(line);
+  div.scrollTop = div.scrollHeight;
+}
+
+async function pollJob(jobId) {
+  const ind = document.getElementById('wsIndicator');
+  const indText = document.getElementById('wsText');
+  let pollCount = 0;
+  const poll = async () => {
+    pollCount++;
+    try {
+      const res = await fetch(`${API}/api/jobs/${jobId}`);
+      if (!res.ok) {
+        if (pollCount < 60) setTimeout(poll, 1000);
+        return;
+      }
+      const r = await res.json();
+      if (r.status === 'done' || r.status === 'failed' || r.status === 'blocked') {
+        stopElapsedTimer();
+        // Show the server-side latency too
+        if (r.total_latency_ms > 0) {
+          const secs = (r.total_latency_ms / 1000).toFixed(1);
+          document.getElementById('elapsedTime').textContent = `✓ ${secs}s (${r.total_tokens} tokens)`;
+        }
+        addStatusLine(`[poll ${pollCount}] DONE — status=${r.status}, vl=${r.verification_level||'?'}, latency=${r.total_latency_ms}ms, tokens=${r.total_tokens}`);
+        renderResult(r);
+        document.getElementById('translateBtn').disabled = false;
+        document.getElementById('translateBtn').textContent = 'Translate';
+        indText.textContent = 'complete';
+        ind.classList.add('connected');
+        loadStats();
+        return;
+      }
+      // Still running — show progress
+      addStatusLine(`[poll ${pollCount}] status=${r.status || 'queued'}, vl=${r.verification_level||'?'}`);
+      setTimeout(poll, 1500);
+    } catch (e) {
+      console.error('poll error:', e);
+      if (pollCount < 60) setTimeout(poll, 2000);
+    }
+  };
+  setTimeout(poll, 500);
+}
+
+// ===== Render result =====
+function renderResult(r) {
+  const body = document.getElementById('outputBody');
+  const vlLabels = {
+    analyzed:'Analyzed', translated:'Translated', compiled:'Compiled on AMD',
+    executed:'Executed on AMD', test_verified:'Test Verified',
+    differentially_verified:'Differentially Verified', benchmarked:'Benchmarked', blocked:'Blocked'
+  };
+  let html = '';
+
+  // Stub banner
+  if (r.stub_mode) {
+    html += `<div class="stub-banner"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"/></svg><span>Parts of this translation used stub mode — <strong>not a real model/GPU translation</strong>. Set ALLOW_STUB_FALLBACK=false for production.</span></div>`;
+  }
+
+  // Cache hit badge
+  if (r.cache_hit) {
+    html += `<div class="cache-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Cache hit — instant return (saved tokens)</div>`;
+  }
+
+  // Verification badge
+  const vl = r.verification_level || 'analyzed';
+  html += `<div class="verification-badge vl-${vl}"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>${vlLabels[vl] || vl}</div>`;
+
+  // Status timeline (only if not cache hit)
+  if (!r.cache_hit && r.iterations && r.iterations.length > 0) {
+    const lastIter = r.iterations[r.iterations.length - 1];
+    const states = [
+      {key:'analyze', label:'Analyze', done:true},
+      {key:'translate', label:'Translate', done:true},
+      {key:'compile', label:'Compile', done:lastIter.compile_success},
+      {key:'run', label:'Run', done:lastIter.compile_success && lastIter.run_success},
+      {key:'diff', label:'Diff', done:lastIter.diff_success},
+      {key:'done', label:'Done', done:r.status==='done'},
+    ];
+    let tl = '<div class="timeline">';
+    states.forEach((s, i) => {
+      tl += `<div class="timeline-node ${s.done?'done':''} ${(!s.done && i===states.findIndex(x=>!x.done))?'active':''}"><div class="circle">${s.done?'✓':i+1}</div><div class="label">${s.label}</div></div>`;
+      if (i < states.length-1) tl += `<div class="timeline-line ${s.done?'done':''}"></div>`;
+    });
+    tl += '</div>';
+    html += tl;
+  }
+
+  // Diff view (CUDA vs HIP)
+  if (r.translated_code) {
+    html += `<div class="diff-container">
+      <div class="diff-pane">
+        <div class="diff-pane-header"><span>Original CUDA</span><span>${r.cuda_source.split('\n').length} lines</span></div>
+        <pre>${highlightCode(r.cuda_source)}</pre>
+      </div>
+      <div class="diff-pane">
+        <div class="diff-pane-header"><span>Translated HIP</span><span>${r.translated_code.split('\n').length} lines</span></div>
+        <pre>${highlightCode(r.translated_code)}</pre>
+      </div>
+    </div>`;
+  }
+
+  // Iteration history
+  if (r.iterations && r.iterations.length > 0) {
+    html += '<div class="iterations">';
+    r.iterations.forEach(it => {
+      const stratClass = it.strategy === 'mechanical' ? 'strat-mechanical' : it.strategy === 'agent_repaired' ? 'strat-agent_repaired' : 'strat-llm_only';
+      html += `<div class="iter-card">
+        <div class="iter-head">
+          <span class="iter-num">Iteration ${it.iteration}</span>
+          <span class="iter-strat ${stratClass}">${it.strategy.replace(/_/g,' ')}</span>
+        </div>
+        <div class="iter-grid">
+          <div>Model: ${it.model_used}</div>
+          <div class="${it.compile_success?'ok':'fail'}">${it.compile_success?'✓':'✗'} compile</div>
+          <div class="${it.run_success?'ok':'fail'}">${it.run_success?'✓':'✗'} run</div>
+          <div class="${it.diff_success?'ok':'fail'}">${it.diff_success?'✓':'✗'} diff</div>
+          <div>${it.tokens_used} tok</div>
+          <div>$${it.cost_usd.toFixed(4)}</div>
+          <div>${it.latency_ms}ms</div>
+          <div>${it.model_used}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // GPU attestation
+  if (r.gpu_attestation) {
+    const a = r.gpu_attestation;
+    const stubClass = a.stub_mode ? 'stub' : '';
+    html += `<div class="attestation ${stubClass}">
+      <div class="attestation-head">
+        <div class="title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
+          ${a.stub_mode ? 'GPU Attestation — DEMO MODE' : 'GPU Attestation — Real Hardware'}
+        </div>
+        <span class="mono" style="font-size:11px;color:var(--text-2)">${a.captured_at || ''}</span>
+      </div>
+      <div class="attestation-grid">
+        <div><span class="key">GPU:</span> ${a.gpu_model || '—'}</div>
+        <div><span class="key">Arch:</span> ${a.architecture || '—'}</div>
+        <div><span class="key">ROCm:</span> ${a.rocm_version ? a.rocm_version.slice(0,40) : '—'}</div>
+        <div><span class="key">hipcc:</span> ${a.hipcc_version ? a.hipcc_version.slice(0,40) : '—'}</div>
+        <div style="grid-column:1/-1"><span class="key">Flags:</span> ${(a.compiler_flags||[]).join(' ')}</div>
+      </div>
+    </div>`;
+  }
+
+  // Diff result
+  if (r.diff) {
+    const d = r.diff;
+    const cls = d.success ? 'success' : 'fail';
+    const errStr = d.max_abs_error != null ? d.max_abs_error.toExponential(3) : 'n/a';
+    const mseStr = d.mse != null ? d.mse.toExponential(3) : 'n/a';
+    html += `<div class="diff-result ${cls}">
+      <div class="row"><span class="key">Numerical Diff</span><span class="val">${d.success ? '✓ PASS' : '✗ FAIL'}</span></div>
+      <div class="row"><span class="key">Max Abs Error</span><span class="val">${errStr}</span></div>
+      <div class="row"><span class="key">MSE</span><span class="val">${mseStr}</span></div>
+      <div class="row"><span class="key">Threshold</span><span class="val">${d.threshold}</span></div>
+      <div class="row"><span class="key">Baseline Source</span><span class="val">${d.baseline_source || 'analytical'}</span></div>
+      ${d.mismatched_keys && d.mismatched_keys.length > 0 ? `<div class="row"><span class="key">Mismatched Keys</span><span class="val" style="color:var(--red)">${d.mismatched_keys.join(', ')}</span></div>` : ''}
+    </div>`;
+  }
+
+  // Cost panel
+  const isFree = r.total_cost_usd === 0;
+  html += `<div class="cost-panel">
+    <div><div class="key">Total Tokens</div><div class="val">${r.total_tokens.toLocaleString()}</div></div>
+    <div><div class="key">Cost</div><div class="val ${isFree?'free':''}">${isFree?'FREE':'$'+r.total_cost_usd.toFixed(4)}</div></div>
+    <div><div class="key">Latency</div><div class="val">${r.total_latency_ms < 1000 ? r.total_latency_ms+'ms' : (r.total_latency_ms/1000).toFixed(2)+'s'}</div></div>
+  </div>`;
+
+  // Error
+  if (r.error) {
+    html += `<div class="stub-banner" style="background:rgba(239,68,68,0.1);border-color:var(--red);color:var(--red)"><strong>Error:</strong> ${escapeHtml(r.error)}</div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+// ===== Helpers =====
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function highlightCode(code) {
+  // Simple syntax highlighting that doesn't break HTML.
+  // Apply to raw code, then escape the content inside spans.
+  // Use placeholders to avoid regex matching inside HTML attributes.
+  if (!code) return '';
+  // Just return escaped code with minimal highlighting via CSS classes
+  // Keywords
+  const keywords = /\b(__global__|__device__|__shared__|__host__|__constant__|void|int|float|double|char|bool|unsigned|long|short|auto|const|static|return|if|else|for|while|switch|case|break|continue|struct|class|namespace|using|template|typename|new|delete|sizeof)\b/g;
+  // Comments (line comments only, to avoid matching inside strings)
+  const lineComment = /(\/\/[^\n]*)/g;
+  // Apply line by line to avoid cross-line issues
+  return code.split('\n').map(line => {
+    let escaped = escapeHtml(line);
+    // Don't highlight inside comments — find comment first
+    const commentMatch = escaped.match(/(\/\/.*)$/);
+    let codePart = commentMatch ? escaped.slice(0, commentMatch.index) : escaped;
+    let commentPart = commentMatch ? commentMatch[0] : '';
+    // Highlight keywords in code part only
+    codePart = codePart.replace(keywords, '<span class="syn-keyword">$1</span>');
+    // Reassemble
+    return codePart + (commentPart ? '<span class="syn-comment">' + commentPart + '</span>' : '');
+  }).join('\n');
+}
+
+document.getElementById('cudaInput').addEventListener('input', updateInputSize);
+init();
+</script>
+</body>
+</html>

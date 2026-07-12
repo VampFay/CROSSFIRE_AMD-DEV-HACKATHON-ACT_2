@@ -1,0 +1,110 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+.npm
+.pnp.*
+
+# Environment
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Docker
+*.pid
+*.log
+
+# ML artifacts
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+checkpoints/
+lora_output/
+wandb/
+mlruns/
+*.ckpt
+
+# RAG
+chroma_db/
+*.duckdb
+*.wal
+
+# Sandbox
+sandbox/temp/
+sandbox/output/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Local screenshots / pasted images (never commit)
+upload/
+*.Screenshot.png
+pasted_image_*.png
+
+# Local-only skill library (not part of the project)
+skills/
+
+# Generated
+samples/baselines/.gitkeep
+
+# Runtime data (not source code)
+backend/data/translation_memory.db
+backend/data/agent_checkpoints.db
+*.sqlite
+*.sqlite3
+
+# Don't ignore
+!.env.example
+!.gitignore
+frontend/
+tool-results/
+download/
