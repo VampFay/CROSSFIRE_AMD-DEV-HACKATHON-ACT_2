@@ -2,16 +2,9 @@
 
 ## Video
 
-`crossfire_demo.mp4` — 22 seconds, 1920x1080
+`crossfire_demo.mp4` — 60 seconds, 3420x2046
 
-Shows a CUDA file translated to ROCm and validated on AMD MI300X.
-
-## What you see
-
-- CUDA code on the left, translated HIP code on the right
-- Compiled with hipcc on AMD MI300X
-- Output compared against expected values (zero error)
-- "Test Verified" badge means it passed
+Shows CUDA code translated to ROCm and validated on AMD MI300X.
 
 ## Stack
 
