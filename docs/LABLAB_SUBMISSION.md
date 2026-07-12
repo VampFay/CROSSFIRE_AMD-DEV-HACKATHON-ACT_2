@@ -7,7 +7,7 @@
 
 ## Track Selection
 
-**Best AMD-Hosted Gemma Project** — Crossfire runs Gemma 4 12B (`unsloth/gemma-4-12b-it`) via vLLM on AMD MI300X (gfx942, ROCm 7.2.4) as the local translation model. Hard semantic cases fall back to Gemma 27B via Fireworks AI. Every translation is compiled, run, and validated on AMD hardware.
+**Best AMD-Hosted Gemma Project** — Crossfire runs Gemma 4 12B (`unsloth/gemma-4-12b-it`) via vLLM on AMD MI300X (gfx942, ROCm 7.2.3) as the local translation model. Hard semantic cases fall back to Gemma 27B via Fireworks AI. Every translation is compiled, run, and validated on AMD hardware.
 
 ---
 
@@ -20,7 +20,7 @@ Crossfire: Autonomous CUDA-to-ROCm Translation Agent
 
 ## Field 2: Short Description (50 words max)
 ```
-Crossfire is an autonomous AI agent that ports CUDA code to AMD ROCm in minutes, not weeks. It uses HIPIFY-first translation plus LLM semantic repair, compiles on AMD MI300X via ROCm 7.2.4, runs translated code, and numerically validates output against analytically computed expected outputs — fully automated.
+Crossfire is an autonomous AI agent that ports CUDA code to AMD ROCm in minutes, not weeks. It uses HIPIFY-first translation plus LLM semantic repair, compiles on AMD MI300X via ROCm 7.2.3, runs translated code, and numerically validates output against analytically computed expected outputs — fully automated.
 ```
 
 ---
@@ -29,9 +29,9 @@ Crossfire is an autonomous AI agent that ports CUDA code to AMD ROCm in minutes,
 
 NVIDIA's CUDA has been the dominant software moat holding AMD back from AI GPU market share for over 15 years. There are tens of thousands of ML codebases — PyTorch extensions, custom kernels, training scripts, inference pipelines — that teams want to run on cheaper, more available AMD MI300X hardware but cannot without manual rewrite. AMD's own HIPIFY tool performs pure syntax translation (approximately 60 percent of the work) but breaks on semantic patterns: cuDNN-to-MIOpen mapping, warp shuffle primitives, custom kernel logic, and Triton kernels. Every ML team's number one objection to AMD adoption is the same: "We cannot afford to rewrite our CUDA code."
 
-Crossfire closes this gap. It is an autonomous AI agent built on a LangGraph state machine that takes a CUDA source file as input and produces a validated, compiled, and benchmarked ROCm equivalent running on AMD MI300X GPUs. The agent loop runs through six states: static analysis (identifies kernels, cuBLAS, cuDNN, Thrust, Triton, warp shuffle patterns and computes a difficulty score), translation (HIPIFY-first: AMD's `hipify-clang` performs the deterministic syntax pass, then a local Gemma 4 12B served via vLLM on AMD MI300X — or a remote Gemma 27B via Fireworks AI for hard semantic cases — performs only the semantic repair on top of the HIPIFY output), compilation (hipcc in an isolated Docker sandbox with ROCm 7.2.4), execution (runs the translated binary on AMD MI300X with sample inputs), numerical diff (compares outputs against analytically computed expected outputs with a 1e-5 threshold — these are hand-coded predicted values, not captures from NVIDIA hardware; CUDA-on-NVIDIA differential verification is on the roadmap), and debug (formats error feedback for the next iteration). The loop retries until correctness is achieved or a JobBudget (hard caps on iterations, model calls, tokens, cost, wall time) is exhausted.
+Crossfire closes this gap. It is an autonomous AI agent built on a LangGraph state machine that takes a CUDA source file as input and produces a validated, compiled, and benchmarked ROCm equivalent running on AMD MI300X GPUs. The agent loop runs through six states: static analysis (identifies kernels, cuBLAS, cuDNN, Thrust, Triton, warp shuffle patterns and computes a difficulty score), translation (HIPIFY-first: AMD's `hipify-clang` performs the deterministic syntax pass, then a local Gemma 4 12B served via vLLM on AMD MI300X — or a remote Gemma 27B via Fireworks AI for hard semantic cases — performs only the semantic repair on top of the HIPIFY output), compilation (hipcc in an isolated Docker sandbox with ROCm 7.2.3), execution (runs the translated binary on AMD MI300X with sample inputs), numerical diff (compares outputs against analytically computed expected outputs with a 1e-5 threshold — these are hand-coded predicted values, not captures from NVIDIA hardware; CUDA-on-NVIDIA differential verification is on the roadmap), and debug (formats error feedback for the next iteration). The loop retries until correctness is achieved or a JobBudget (hard caps on iterations, model calls, tokens, cost, wall time) is exhausted.
 
-Every architectural component depends on AMD hardware by design. The agent orchestrator runs on AMD Developer Cloud. Translations are validated by compiling and running on ROCm 7.2.4 with MI300X GPUs (gfx942 architecture). The local translation model is Gemma 4 12B served via vLLM on MI300X — a prompt-engineering baseline. Hard semantic cases fall back to Gemma 27B via the Fireworks AI API, which hosts models on AMD hardware. The RAG layer uses ChromaDB with curated ROCm 7.2.4 documentation chunks, MIOpen API references, and translation tables to augment translation prompts with relevant context.
+Every architectural component depends on AMD hardware by design. The agent orchestrator runs on AMD Developer Cloud. Translations are validated by compiling and running on ROCm 7.2.3 with MI300X GPUs (gfx942 architecture). The local translation model is Gemma 4 12B served via vLLM on MI300X — a prompt-engineering baseline. Hard semantic cases fall back to Gemma 27B via the Fireworks AI API, which hosts models on AMD hardware. The RAG layer uses ChromaDB with curated ROCm 7.2.3 documentation chunks, MIOpen API references, and translation tables to augment translation prompts with relevant context.
 
 The project includes 20 CUDA sample programs spanning difficulty levels from simple vector_add through flash-attention subsets and warp-shuffle reductions. Each sample emits structured JSON output between markers that the sandbox parses and numerically diffs against analytically computed baselines. Every result also carries a `VerificationLevel` enum (`analyzed → translated → compiled → executed → test_verified → differentially_verified → benchmarked`) shown as a badge in the UI, plus a GPU attestation block (`gpu_model`, `architecture` (gfx942), `rocm_version`, `hipcc_version`, `compiler_flags`) recording which hardware ran the code. The UI is a standalone web app served by the backend at `/ui/`, with a CUDA/ROCm diff view, live WebSocket status updates, a correctness report card showing max_abs_error and MSE, and a performance comparison chart. The entire stack is containerized with Docker Compose, including the ROCm sandbox, vLLM server, Redis, ChromaDB, FastAPI backend, UI, and a background RQ worker.
 
@@ -92,7 +92,7 @@ amd-rocm, fireworks-ai, gemma, langgraph, vllm, code-translation, ai-agents, roc
 ## Field 9: Demo Application Platform
 - **Platform**: AMD Developer Cloud (MI300X instance)
 - **Container**: Docker (via docker-compose)
-- **Services**: api (FastAPI + UI), vllm, sandbox (ROCm 7.2.4), redis, chromadb, worker
+- **Services**: api (FastAPI + UI), vllm, sandbox (ROCm 7.2.3), redis, chromadb, worker
 
 ---
 
@@ -149,7 +149,7 @@ amd-rocm, fireworks-ai, gemma, langgraph, vllm, code-translation, ai-agents, roc
 ## Field 13: Additional Notes (optional)
 
 ### Best AMD-Hosted Gemma Project
-Crossfire uses Gemma 4 12B (`unsloth/gemma-4-12b-it`) as the local translation model served via vLLM on AMD MI300X (BF16, gfx942). This is a prompt-engineering baseline. Hard semantic translation cases use Gemma 27B via Fireworks AI. The RAG layer augments prompts with ROCm 7.2.4 documentation to improve translation accuracy. Local tokens are free per the hackathon rules.
+Crossfire uses Gemma 4 12B (`unsloth/gemma-4-12b-it`) as the local translation model served via vLLM on AMD MI300X (BF16, gfx942). This is a prompt-engineering baseline. Hard semantic translation cases use Gemma 27B via Fireworks AI. The RAG layer augments prompts with ROCm 7.2.3 documentation to improve translation accuracy. Local tokens are free per the hackathon rules.
 
 ### Innovation Highlights
 1. **HIPIFY-first, LLM-second.** `hipify-clang` does the deterministic syntax pass; the LLM only repairs semantic gaps (cuDNN→MIOpen, warp shuffle, Triton). More auditable than a pure-LLM approach, and keeps the LLM focused on what it's good at.
@@ -165,7 +165,7 @@ Crossfire uses Gemma 4 12B (`unsloth/gemma-4-12b-it`) as the local translation m
 - All hero demos have been tested and pass validation.
 - `rocm-smi` output is visible in the demo video to prove real AMD hardware execution.
 - The agent loop takes 30–90 seconds per translation depending on difficulty (bounded by JobBudget).
-- Each result's VerificationLevel badge shows how far validation proceeded; GPU attestation shows the exact gfx942 / ROCm 7.2.4 / hipcc versions used.
+- Each result's VerificationLevel badge shows how far validation proceeded; GPU attestation shows the exact gfx942 / ROCm 7.2.3 / hipcc versions used.
 
 ---
 

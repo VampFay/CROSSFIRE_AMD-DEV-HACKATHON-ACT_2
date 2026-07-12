@@ -17,7 +17,7 @@ services:
   # ROCm Sandbox — isolated compile + run + diff environment
   # ----------------------------------------------------------
   sandbox:
-    image: rocm/pytorch:rocm7.2.4_ubuntu24.04_py3.11_pytorch_3.0
+    image: rocm/pytorch:rocm7.2.3_ubuntu24.04_py3.11_pytorch_3.0
     container_name: crossfire-sandbox
     devices:
       - "/dev/kfd:/dev/kfd"
@@ -51,7 +51,7 @@ services:
   # vLLM — Local model serving (Gemma 4 12B on AMD MI300X)
   # ----------------------------------------------------------
   vllm:
-    image: rocm/vllm:rocm7.2.4
+    image: rocm/vllm:rocm7.2.3
     container_name: crossfire-vllm
     devices:
       - "/dev/kfd:/dev/kfd"

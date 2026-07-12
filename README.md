@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![ROCm 7.2.4](https://img.shields.io/badge/ROCm-7.2.4-red.svg)](https://rocm.docs.amd.com/)
+[![ROCm 7.2.3](https://img.shields.io/badge/ROCm-7.2.4-red.svg)](https://rocm.docs.amd.com/)
 [![AMD MI300X](https://img.shields.io/badge/Built%20on-AMD%20MI300X-red.svg)](https://www.amd.com/en/products/accelerators/instinct/mi300/mi300x.html)
 
 Crossfire translates CUDA source files to AMD ROCm and validates the result by compiling and running them on MI300X. It uses AMD's `hipify-clang` for the initial syntax conversion, then uses a Gemma 4 12B model to fix anything hipify can't handle. Each translation is compiled with `hipcc`, run with sample inputs, and checked against expected outputs.
