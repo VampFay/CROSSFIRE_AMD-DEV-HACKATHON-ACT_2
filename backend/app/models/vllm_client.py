@@ -106,11 +106,19 @@ class VLLMClient(BaseModelClient):
                 {"role": "user", "content": user},
             ]
 
+        # Calculate max_tokens dynamically — leave room for input
+        # Model supports 8192 total context. Input + output must fit.
+        input_chars = sum(len(m["content"]) for m in messages)
+        estimated_input_tokens = input_chars // 4  # rough: 4 chars per token
+        max_output = min(settings.vllm_max_tokens, 8192 - estimated_input_tokens - 100)
+        if max_output < 256:
+            max_output = 256  # minimum viable output
+
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             temperature=settings.vllm_temperature,
-            max_tokens=settings.vllm_max_tokens,
+            max_tokens=max_output,
         )
 
         if response.usage is not None:

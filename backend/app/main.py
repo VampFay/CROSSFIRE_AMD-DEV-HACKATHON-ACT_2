@@ -140,10 +140,11 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 from app.middleware.basic_auth import BasicAuthMiddleware
-# Rate limiting disabled for demo — local model is free, no need to throttle
-# from app.middleware.rate_limit import RateLimitMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware
 app.add_middleware(BasicAuthMiddleware)
-# app.add_middleware(RateLimitMiddleware, requests_per_minute=10, burst=20)
+# Rate limit: 60/min with burst of 100 — enough for judges to test freely
+# but prevents abuse. Local model is free so this is generous.
+app.add_middleware(RateLimitMiddleware, requests_per_minute=60, burst=100)
 
 
 # ============================================================
