@@ -1,25 +1,22 @@
-# Demo Video
+# Demo
 
-## File
+## Video
 
-`crossfire_demo.mp4` — 40 seconds, 1920x1080
+`crossfire_demo.mp4` — 22 seconds, 1920x1080
 
-Shows two CUDA files translated to ROCm and validated on AMD MI300X:
+Shows a CUDA file translated to ROCm and validated on AMD MI300X.
 
-1. `01_vector_add.cu` — passes, zero error
-2. `02_saxpy.cu` — passes, zero error
-
-## What you're seeing
+## What you see
 
 - CUDA code on the left, translated HIP code on the right
-- Each translation is compiled with hipcc and run on the GPU
-- Output is compared against expected values (max error = 0.0)
-- The "Test Verified" badge means it compiled, ran, and passed validation
+- Compiled with hipcc on AMD MI300X
+- Output compared against expected values (zero error)
+- "Test Verified" badge means it passed
 
 ## Stack
 
 - Model: Gemma 4 12B via vLLM
-- GPU: AMD MI300X (gfx942)
+- GPU: AMD MI300X
 - ROCm: 7.2.3
 - Translation: hipify-clang + Gemma 4 12B
 
