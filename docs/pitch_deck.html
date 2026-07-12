@@ -85,16 +85,16 @@
   <div style="margin-top: 100px;"><div class="muted" style="margin-bottom: 16px;">WHY NOW</div><h2>Four forces converge in 2026</h2></div>
   <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
     <div class="card"><h3 class="accent" style="font-size: 28px;">1. ROCm 7.2 is stable</h3><p style="margin-top: 12px; font-size: 22px;">ROCm has matured rapidly for production AI workloads. MIOpen, hipBLAS, rocPRIM are production-ready.</p></div>
-    <div class="card"><h3 class="accent" style="font-size: 28px;">2. MI300X offers compelling inference economics</h3><p style="margin-top: 12px; font-size: 22px;">192GB HBM3, lower cost per token. The hardware advantage is real — the software gap is the only blocker.</p></div>
+    <div class="card"><h3 class="accent" style="font-size: 28px;">2. MI300X offers compelling inference economics</h3><p style="margin-top: 12px; font-size: 22px;">192GB HBM3, lower cost per token. The hardware advantage is real — Software portability remains a major barrier to AMD adoption.</p></div>
     <div class="card"><h3 class="accent" style="font-size: 28px;">3. Code LLMs are viable</h3><p style="margin-top: 12px; font-size: 22px;">Gemma 4, DeepSeek-Coder, and other modern code LLMs perform semantic code translation with RAG augmentation.</p></div>
-    <div class="card"><h3 class="accent" style="font-size: 28px;">4. AMD says so themselves</h3><p style="margin-top: 12px; font-size: 22px;">Lisa Su: AMD continues to prioritize AI software and developer tooling. ROCm roadmap lists "CUDA porting tools" as priority.</p></div>
+    <div class="card"><h3 class="accent" style="font-size: 28px;">4. AMD is prioritizing software portability</h3><p style="margin-top: 12px; font-size: 22px;">Lisa Su: AMD continues to prioritize AI software and developer tooling. ROCm roadmap lists "CUDA porting tools" as priority.</p></div>
   </div>
   <div class="footer"><span>Crossfire — AMD Developer Hackathon: ACT II</span><span>03</span></div>
 </div>
 
 <div class="slide">
   <div class="bg-grid"></div><div class="accent-line"></div><div class="slide-num">04 / 11</div>
-  <div style="margin-top: 100px;"><div class="muted" style="margin-bottom: 16px;">THE SOLUTION</div><h2>Autonomous translation <span class="accent">+ validation</span></h2><p style="margin-top: 24px; max-width: 1400px;">Crossfire is an AI agent that takes a CUDA source files, translates it to ROCm, compiles it on AMD MI300X, runs it, and validates test verification against analytical baselines — autonomously, in minutes not weeks.</p></div>
+  <div style="margin-top: 100px;"><div class="muted" style="margin-bottom: 16px;">THE SOLUTION</div><h2>Autonomous translation <span class="accent">+ validation</span></h2><p style="margin-top: 24px; max-width: 1400px;">Crossfire takes supported CUDA source files, translates them to HIP, compiles and executes them on AMD MI300X, and test-verifies the outputs against analytical reference baselines — autonomously, in minutes rather than weeks.</p></div>
   <div style="margin-top: 60px;" class="card">
     <div class="muted" style="font-size: 16px; margin-bottom: 24px;">THE AGENT LOOP</div>
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
@@ -108,7 +108,7 @@
       <div style="color: #2b6886; font-size: 32px;">→</div>
       <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700;">Diff</div><div class="muted" style="font-size: 16px;">vs. baseline</div></div>
       <div style="color: #e8a020; font-size: 32px;">↻</div>
-      <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700; color: #5cb4d8;">Done</div><div class="muted" style="font-size: 16px;">validated</div></div>
+      <div style="text-align: center;"><div style="font-size: 24px; font-weight: 700; color: #5cb4d8;">Done</div><div class="muted" style="font-size: 16px;">test verified</div></div>
     </div>
   </div>
   <div class="footer"><span>Crossfire — AMD Developer Hackathon: ACT II</span><span>04</span></div>
@@ -119,11 +119,11 @@
   <div style="margin-top: 80px;"><div class="muted" style="margin-bottom: 16px;">ARCHITECTURE</div><h2>AMD-native execution and validation stack</h2></div>
   <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; flex: 1;">
     <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Agent Orchestrator</h3><p style="margin-top: 12px; font-size: 18px;">LangGraph state machine on AMD Developer Cloud. 6-node loop with retry.</p></div>
-    <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Local Model</h3><p style="margin-top: 12px; font-size: 18px;">Gemma 4 12B via vLLM on MI300X. Local tokens = FREE. Prompt-engineering baseline; LoRA pipeline implemented.</p></div>
+    <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Local Model</h3><p style="margin-top: 12px; font-size: 18px;">Gemma 4 12B via vLLM on MI300X. $0 external API cost for local routes. LoRA fine-tuning planned.</p></div>
     <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Cloud Fallback</h3><p style="margin-top: 12px; font-size: 18px;">Gemma 4 12B via vLLM on MI300X for hard semantic cases (cuDNN, Triton, warp shuffle).</p></div>
     <div class="card"><div class="tag tag-amber" style="margin-bottom: 16px;">GEMMA</div><h3 style="font-size: 24px;">RAG Layer</h3><p style="margin-top: 12px; font-size: 18px;">ChromaDB with ROCm 7.2 docs, MIOpen API refs, translation tables.</p></div>
     <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Compile Sandbox</h3><p style="margin-top: 12px; font-size: 18px;">Docker + ROCm 7.2.3 + hipcc. Dockerized ROCm compile environment.</p></div>
-    <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Validation</h3><p style="margin-top: 12px; font-size: 18px;">Run on MI300X, numerical diff vs. CUDA baseline. Threshold: 1e-5.</p></div>
+    <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Validation</h3><p style="margin-top: 12px; font-size: 18px;">Each supported demo is compiled with hipcc, executed on AMD MI300X, and numerically compared against an analytical reference output.</p></div>
   </div>
   <div class="footer"><span>Crossfire — AMD Developer Hackathon: ACT II</span><span>05</span></div>
 </div>
@@ -150,12 +150,12 @@
 
 <div class="slide">
   <div class="bg-grid"></div><div class="accent-line"></div><div class="slide-num">07 / 11</div>
-  <div style="margin-top: 100px;"><div class="muted" style="margin-bottom: 16px;">VALIDATION</div><h2>Validated on <span class="accent">AMD MI300X</span></h2><p style="margin-top: 24px; max-width: 1400px;">Every translation is compiled with hipcc, run on AMD MI300X, and numerically diffed against analytical baseline outputs. Pass threshold: max_abs_error &lt; 1e-5.</p></div>
+  <div style="margin-top: 100px;"><div class="muted" style="margin-bottom: 16px;">VALIDATION</div><h2>Test-verified on <span class="accent">AMD MI300X</span></h2><p style="margin-top: 24px; max-width: 1400px;">Every translation is compiled with hipcc, run on AMD MI300X, and numerically diffed against analytical baseline outputs. Pass threshold: max_abs_error &lt; 1e-5.</p></div>
   <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px;">
     <div class="card" style="text-align: center;"><div class="stat-num">1e-5</div><div class="stat-label">Diff Threshold</div></div>
     <div class="card" style="text-align: center;"><div class="stat-num">5</div><div class="stat-label">Max Iterations</div></div>
     <div class="card" style="text-align: center;"><div class="stat-num">80%</div><div class="stat-label">Local Model Usage</div></div>
-    <div class="card" style="text-align: center;"><div class="stat-num">$0</div><div class="stat-label">Local Token Cost</div></div>
+    <div class="card" style="text-align: center;"><div class="stat-num">$0</div><div class="stat-label">External API Cost</div></div>
   </div>
   <div style="margin-top: 40px;" class="card">
     <div class="muted" style="font-size: 16px; margin-bottom: 12px;">SAMPLE VALIDATION OUTPUT</div>
@@ -177,7 +177,7 @@
   <div style="margin-top: 80px;"><div class="muted" style="margin-bottom: 16px;">TECHNICAL DIFFERENTIATION</div><h2>HIPIFY-first + Gemma 4 12B semantic repair (LoRA pipeline on roadmap)</h2></div>
   <div style="margin-top: 40px;" class="card">
     <table style="width: 100%; border-collapse: collapse; font-size: 22px;">
-      <thead><tr style="border-bottom: 2px solid #2b6886;"><th style="text-align: left; padding: 16px;">Approach</th><th style="text-align: center; padding: 16px;">Syntax</th><th style="text-align: center; padding: 16px;">Semantics</th><th style="text-align: center; padding: 16px;">Validated</th><th style="text-align: center; padding: 16px;">Time</th><th style="text-align: center; padding: 16px;">AMD-Native</th></tr></thead>
+      <thead><tr style="border-bottom: 2px solid #2b6886;"><th style="text-align: left; padding: 16px;">Approach</th><th style="text-align: center; padding: 16px;">Syntax</th><th style="text-align: center; padding: 16px;">Semantics</th><th style="text-align: center; padding: 16px;">Automated test verification</th><th style="text-align: center; padding: 16px;">Time</th><th style="text-align: center; padding: 16px;">AMD-Native</th></tr></thead>
       <tbody>
         <tr style="border-bottom: 1px solid rgba(43,104,134,0.2);"><td style="padding: 16px;">Manual rewrite</td><td style="text-align: center;">✓</td><td style="text-align: center;">✓</td><td style="text-align: center;">✓</td><td style="text-align: center;">2-8 wks</td><td style="text-align: center;">Optional</td></tr>
         <tr style="border-bottom: 1px solid rgba(43,104,134,0.2);"><td style="padding: 16px;">AMD HIPIFY (rule-based)</td><td style="text-align: center;">✓</td><td style="text-align: center;">✗</td><td style="text-align: center;">✗</td><td style="text-align: center;">Hours</td><td style="text-align: center;">✓</td></tr>
@@ -194,7 +194,7 @@
   <div class="bg-grid"></div><div class="accent-line"></div><div class="slide-num">09 / 11</div>
   <div style="margin-top: 100px;"><div class="muted" style="margin-bottom: 16px;">MARKET POTENTIAL</div><h2>Multi-billion-dollar market. <span class="accent">A strategic bridge into the AMD ecosystem.</span></h2></div>
   <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-    <div class="card"><h3 style="font-size: 28px;" class="accent">The Buyer</h3><p style="margin-top: 16px; font-size: 22px;">ML Platform Engineers at mid-to-large enterprises evaluating AMD hardware. Thousands of them. All blocked by CUDA lock-in.</p></div>
+    <div class="card"><h3 style="font-size: 28px;" class="accent">The Buyer</h3><p style="margin-top: 16px; font-size: 22px;">ML platform teams at mid-to-large enterprises evaluating AMD hardware and facing CUDA migration friction.</p></div>
     <div class="card"><h3 style="font-size: 28px;" class="accent">The Revenue Model</h3><p style="margin-top: 16px; font-size: 22px;">Free tier (5 files/mo), Pro ($99/mo), Enterprise (custom). Plus AMD white-label / OEM licensing.</p></div>
     <div class="card"><h3 style="font-size: 28px;" class="accent">Strategic Fit</h3><p style="margin-top: 16px; font-size: 22px;">AMD has acquired Mipsology, Nod.ai, Silo AI — all software gap-closers. Crossfire fits the pattern exactly.</p></div>
     <div class="card"><h3 style="font-size: 28px;" class="accent">The Moat</h3><p style="margin-top: 16px; font-size: 22px;">Validated translation corpus grows with every job. Fine-tuned model improves. Each migration adds reusable repair traces and validated mappings.</p></div>
