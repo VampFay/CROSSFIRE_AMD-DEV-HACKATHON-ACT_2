@@ -37,7 +37,7 @@ The project includes 20 CUDA sample programs spanning difficulty levels from sim
 
 Crossfire addresses a real problem: porting CUDA to ROCm is slow and error-prone. AMD lists "porting CUDA workloads to AMD hardware" as a ROCm use case on their hackathon page. The company has acquired Mipsology, Nod.ai, and Silo AI to improve their software stack. Crossfire fits this direction.
 
-Built in five days for the AMD Developer Hackathon ACT II (Track 3 Unicorn Track), Crossfire demonstrates that the compile-validate-iterate loop — a compile-validate-iterate loop that goes beyond syntax translation — can work end-to-end on real AMD hardware. The v0.3.0 submission ships with a prompt-engineering baseline on Gemma 4 12B; v0.4 will expand the CUDA→ROCm dataset, add CUDA-on-NVIDIA differential verification, and extend multi-file repository support.
+Built in six days for the AMD Developer Hackathon ACT II (Track 3 Unicorn Track), Crossfire demonstrates that the compile-validate-iterate loop that goes beyond syntax translation — can work end-to-end on real AMD hardware. The v0.3.0 submission ships with a prompt-engineering baseline on Gemma 4 12B; v0.4 will expand the CUDA→ROCm dataset, add CUDA-on-NVIDIA differential verification, and extend multi-file repository support.
 
 ---
 
@@ -58,7 +58,7 @@ amd-rocm, fireworks-ai, gemma, langgraph, vllm, code-translation, ai-agents, roc
 ---
 
 ## Field 6: Video Presentation
-- **File**: `download/crossfire_gemma4_demo.mp4` (and `.webm` mirror)
+- **File**: `demo/crossfire_demo.mp4` (and `.webm` mirror)
 - **Duration**: ~18 seconds
 - **Format**: MP4, 1080p
 - **Script**: See `docs/demo_video_script.md`

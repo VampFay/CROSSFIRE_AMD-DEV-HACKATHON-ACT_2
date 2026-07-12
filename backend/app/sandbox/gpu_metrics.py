@@ -1,6 +1,6 @@
 """
 GPU metrics collector — parses rocm-smi output to surface AMD GPU info
-in the UI. This proves to judges that translations really run on AMD hardware.
+in the UI, proving translations run on real AMD hardware.
 
 Runs `rocm-smi --showproductname --showmeminfo vram --showgpuutil` inside
 the sandbox container and parses the output.

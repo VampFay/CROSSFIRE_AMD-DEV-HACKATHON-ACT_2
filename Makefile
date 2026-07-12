@@ -15,7 +15,6 @@ help:
 	@echo ""
 	@echo "Data preparation:"
 	@echo "  make rag              Build RAG corpus (ChromaDB)"
-	@echo "  make dataset          Generate training dataset"
 	@echo "  make baselines        Generate baseline outputs for CUDA samples"
 	@echo ""
 	@echo "Testing:"
@@ -47,9 +46,6 @@ install:
 
 rag:
 	cd backend && python3 scripts/build_rag.py
-
-dataset:
-	cd backend && python3 scripts/prepare_dataset.py --output data/cuda_rocm_pairs.jsonl
 
 baselines:
 	cd backend && python3 scripts/generate_baselines.py

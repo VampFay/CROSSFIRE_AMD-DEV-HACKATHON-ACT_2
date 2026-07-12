@@ -396,25 +396,20 @@ class SandboxClient:
         inputs: Dict[str, Any],
         timeout: Optional[int] = None,
     ) -> RunResult:
-        """Run binary directly (when running inside the ROCm container).
-
-        CRITICAL FIX: feeds `inputs` as JSON on stdin. Previously the `inputs`
-        parameter was silently dropped, causing every stdin-reading sample to
-        produce wrong output.
-        """
+        """Run binary directly (when running inside the ROCm container)."""
         timeout = timeout or settings.sandbox_timeout
         start = time.time()
 
         try:
             proc = await asyncio.create_subprocess_exec(
                 binary_path,
-                stdin=asyncio.subprocess.PIPE,   # ← was missing
+                stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
             input_json = json.dumps(inputs).encode()
             stdout, stderr = await asyncio.wait_for(
-                proc.communicate(input=input_json),  # ← was missing
+                proc.communicate(input=input_json),
                 timeout=timeout,
             )
         except asyncio.TimeoutError:

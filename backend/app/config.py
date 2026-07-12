@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # ---- App ----
     app_name: str = "Crossfire"
-    app_version: str = "0.1.0"
+    app_version: str = "0.3.0"
     debug: bool = False
 
     # ---- Fireworks AI ----

@@ -52,7 +52,6 @@ rq==2.0.0
 
 # ---- Code Tools ----
 pygments==2.18.0                # syntax highlighting
-# NOTE: difflib2 removed — not a real PyPI package. Using stdlib difflib.
 
 # ---- Data ----
 numpy==2.2.1

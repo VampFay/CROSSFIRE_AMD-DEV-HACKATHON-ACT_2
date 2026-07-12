@@ -19,7 +19,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Token bucket rate limiter per client IP."""
 
-    def __init__(self, app, requests_per_minute: int = 10, burst: int = 20):
+    def __init__(self, app, requests_per_minute: int = 60, burst: int = 100):
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
         self.burst = burst
@@ -47,7 +47,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if tokens < 1:
             logger.warning(f"Rate limit exceeded for IP {client_ip}")
             return Response(
-                content='{"detail": "Rate limit exceeded. Rate limit exceeded."}',
+                content='{"detail": "Rate limit exceeded."}',
                 status_code=429,
                 media_type="application/json",
                 headers={"Retry-After": "60"},
