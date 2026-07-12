@@ -313,7 +313,7 @@ footer a { margin: 0 8px; }
 
 <section class="hero">
   <h1>Autonomous CUDA → <span class="accent">ROCm</span> Migration Agent</h1>
-  <p>Deterministic HIPIFY + LLM semantic repair + differential validation on AMD MI300X</p>
+  <p>Deterministic HIPIFY + LLM semantic repair + analytical test verification on AMD MI300X</p>
   <div class="stats-row">
     <div class="stat-tile"><div class="label">Translations Run</div><div class="value" id="statTotal">—</div><div class="sub" id="statTotalSub">loading…</div></div>
     <div class="stat-tile"><div class="label">Verified on MI300X</div><div class="value" id="statVerified">—</div><div class="sub" id="statVerifiedSub">loading…</div></div>
@@ -757,7 +757,7 @@ function renderResult(r) {
       <div class="attestation-head">
         <div class="title">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
-          ${a.stub_mode ? 'GPU Attestation — DEMO MODE' : 'GPU Attestation — Real Hardware'}
+          ${a.stub_mode ? 'Execution Provenance — DEMO MODE' : 'Execution Provenance — Real Hardware'}
         </div>
         <span class="mono" style="font-size:11px;color:var(--text-2)">${a.captured_at || ''}</span>
       </div>

@@ -32,7 +32,7 @@ jobs:
           FIREWORKS_API_KEY: test_key_for_ci
           ALLOW_STUB_FALLBACK: "true"
           ALLOW_STUB_SANDBOX: "true"
-        run: python -m pytest tests/ -v --tb=short || true
+        run: python -m pytest tests/ -v --tb=short 
 
   lint:
     name: Ruff lint
@@ -50,4 +50,4 @@ jobs:
         run: pip install ruff
 
       - name: Run ruff
-        run: ruff check backend/app/ backend/tests/ || true
+        run: ruff check backend/app/ backend/tests/ 

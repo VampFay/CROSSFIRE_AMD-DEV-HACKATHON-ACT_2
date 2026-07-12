@@ -216,7 +216,7 @@ class IterationRecord(BaseModel):
     strategy: MigrationStrategy = MigrationStrategy.LLM_ONLY
 
 
-class GPUAttestation(BaseModel):
+class GPUAttestation  # displayed as "Execution Provenance" in UI(BaseModel):
     """
     Cryptographic-style evidence that the run happened on real AMD hardware.
     Captured at compile + run time, stored with every result.
@@ -284,7 +284,7 @@ class TranslationResult(BaseModel):
     analysis: Optional[AnalysisResult] = None
     diff: Optional[DiffResult] = None
     gpu_metrics: Optional[GPUMetrics] = None
-    gpu_attestation: Optional[GPUAttestation] = None
+    gpu_attestation: Optional[GPUAttestation  # displayed as "Execution Provenance" in UI] = None
     benchmark: Optional[BenchmarkResult] = None
     migration_plan: Optional[MigrationPlan] = None
     migration_strategy: MigrationStrategy = MigrationStrategy.LLM_ONLY

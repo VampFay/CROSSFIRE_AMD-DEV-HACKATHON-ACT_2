@@ -12,7 +12,7 @@ CRITICAL FIXES vs. previous version:
   3. stub_mode propagated from model client to TranslationResult.
   4. VerificationLevel computed from actual evidence — never defaults to
      "validated" without proof.
-  5. JobBudget enforced before every node via budget.assert_available().
+  5. 
 """
 from __future__ import annotations
 
@@ -218,16 +218,12 @@ async def run_agent(
                     has_warp_primitives=False,
                     library_calls=[],
                     file_dependencies=[],
-                    notes=f"Cache hit (saved {cached['tokens_used']} tokens, ${cached['cost_usd']:.4f})",
+                    notes=f"Cache hit (saved {cached['tokens_used']} tokens, ${cached['cost_usd']:.4f}). Previous test evidence available but not rerun.",
                 ),
-                diff=DiffResult(
-                    success=True,
-                    max_abs_error=cached.get("max_abs_error"),
-                    threshold=settings.agent_diff_threshold,
-                    mismatched_keys=[],
-                    baseline_source="analytical",
-                ),
-                cache_hit=True,  # ← was False (bug)
+                diff=None,  # no diff on cache hit — not rerun
+                gpu_metrics=None,
+                gpu_attestation=None,
+                cache_hit=True,
                 budget=budget,
                 completed_at=datetime.utcnow(),
             )

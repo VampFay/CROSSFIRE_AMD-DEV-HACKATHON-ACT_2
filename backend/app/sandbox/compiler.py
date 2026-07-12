@@ -219,7 +219,7 @@ class SandboxClient:
             compile_cmd = [
                 "docker", "exec", self.container,
                 "hipcc", src_path, "-o", bin_path,
-                "-lhipblas", "-O2",
+                "-lhipblas", "-O2", "--offload-arch=gfx942",
             ]
             proc = await asyncio.create_subprocess_exec(
                 *compile_cmd,
@@ -351,7 +351,7 @@ class SandboxClient:
         try:
             proc = await asyncio.create_subprocess_exec(
                 "hipcc", src_path, "-o", bin_path,
-                "-lhipblas", "-O2", "-Wno-unused-result",
+                "-lhipblas", "-O2", "--offload-arch=gfx942", "-Wno-unused-result",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

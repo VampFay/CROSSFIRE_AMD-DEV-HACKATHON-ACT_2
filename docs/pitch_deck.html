@@ -122,7 +122,7 @@
     <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Local Model</h3><p style="margin-top: 12px; font-size: 18px;">Gemma 4 12B via vLLM on MI300X. Local tokens = FREE. Prompt-engineering baseline; LoRA pipeline implemented.</p></div>
     <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Remote Model</h3><p style="margin-top: 12px; font-size: 18px;">Gemma 4 12B via vLLM on MI300X for hard semantic cases (cuDNN, Triton, warp shuffle).</p></div>
     <div class="card"><div class="tag tag-amber" style="margin-bottom: 16px;">GEMMA</div><h3 style="font-size: 24px;">RAG Layer</h3><p style="margin-top: 12px; font-size: 18px;">ChromaDB with ROCm 7.2 docs, MIOpen API refs, translation tables.</p></div>
-    <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Compile Sandbox</h3><p style="margin-top: 12px; font-size: 18px;">Docker + ROCm 7.2.4 + hipcc. Isolated compile per job.</p></div>
+    <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Compile Sandbox</h3><p style="margin-top: 12px; font-size: 18px;">Docker + ROCm 7.2.4 + hipcc. Dockerized ROCm compile environment.</p></div>
     <div class="card"><div class="tag tag-blue" style="margin-bottom: 16px;">AMD</div><h3 style="font-size: 24px;">Validation</h3><p style="margin-top: 12px; font-size: 18px;">Run on MI300X, numerical diff vs. CUDA baseline. Threshold: 1e-5.</p></div>
   </div>
   <div class="footer"><span>Crossfire — AMD Developer Hackathon: ACT II</span><span>05</span></div>
@@ -150,7 +150,7 @@
 
 <div class="slide">
   <div class="bg-grid"></div><div class="accent-line"></div><div class="slide-num">07 / 11</div>
-  <div style="margin-top: 100px;"><div class="muted" style="margin-bottom: 16px;">VALIDATION</div><h2>Validated on <span class="accent">AMD MI300X</span></h2><p style="margin-top: 24px; max-width: 1400px;">Every translation is compiled with hipcc, run on AMD MI300X, and numerically diffed against cached CUDA baseline outputs. Pass threshold: max_abs_error &lt; 1e-5.</p></div>
+  <div style="margin-top: 100px;"><div class="muted" style="margin-bottom: 16px;">VALIDATION</div><h2>Validated on <span class="accent">AMD MI300X</span></h2><p style="margin-top: 24px; max-width: 1400px;">Every translation is compiled with hipcc, run on AMD MI300X, and numerically diffed against analytical baseline outputs. Pass threshold: max_abs_error &lt; 1e-5.</p></div>
   <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px;">
     <div class="card" style="text-align: center;"><div class="stat-num">1e-5</div><div class="stat-label">Diff Threshold</div></div>
     <div class="card" style="text-align: center;"><div class="stat-num">5</div><div class="stat-label">Max Iterations</div></div>
@@ -196,8 +196,8 @@
   <div style="margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
     <div class="card"><h3 style="font-size: 28px;" class="accent">The Buyer</h3><p style="margin-top: 16px; font-size: 22px;">ML Platform Engineers at mid-to-large enterprises evaluating AMD hardware. Thousands of them. All blocked by CUDA lock-in.</p></div>
     <div class="card"><h3 style="font-size: 28px;" class="accent">The Revenue Model</h3><p style="margin-top: 16px; font-size: 22px;">Free tier (5 files/mo), Pro ($99/mo), Enterprise (custom). Plus AMD white-label / OEM licensing.</p></div>
-    <div class="card"><h3 style="font-size: 28px;" class="accent">The Acquirer</h3><p style="margin-top: 16px; font-size: 22px;">AMD has acquired Mipsology, Nod.ai, Silo AI — all software gap-closers. Crossfire fits the pattern exactly.</p></div>
-    <div class="card"><h3 style="font-size: 28px;" class="accent">The Moat</h3><p style="margin-top: 16px; font-size: 22px;">Validated translation corpus grows with every job. Fine-tuned model improves. AMD-native architecture is non-portable.</p></div>
+    <div class="card"><h3 style="font-size: 28px;" class="accent">Strategic Fit</h3><p style="margin-top: 16px; font-size: 22px;">AMD has acquired Mipsology, Nod.ai, Silo AI — all software gap-closers. Crossfire fits the pattern exactly.</p></div>
+    <div class="card"><h3 style="font-size: 28px;" class="accent">The Moat</h3><p style="margin-top: 16px; font-size: 22px;">Validated translation corpus grows with every job. Fine-tuned model improves. Each migration adds reusable repair traces and validated mappings.</p></div>
   </div>
   <div class="footer"><span>Crossfire — AMD Developer Hackathon: ACT II</span><span>09</span></div>
 </div>
