@@ -61,7 +61,7 @@ Analyze ──▶ Translate ──▶ Compile ──▶ Run ──▶ Diff ─�
 | Component | What we use |
 |-----------|-------------|
 | GPU | AMD MI300X (gfx942) |
-| ROCm | 7.2.4 |
+| ROCm | 7.2.3 |
 | Translation | hipify-clang + Gemma 4 12B |
 | Model serving | vLLM |
 | Agent framework | LangGraph |

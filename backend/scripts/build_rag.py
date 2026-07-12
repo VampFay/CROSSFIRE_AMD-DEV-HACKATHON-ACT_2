@@ -3,7 +3,7 @@
 Build the RAG corpus for Crossfire.
 
 Downloads and indexes:
-1. ROCm 7.2.4 documentation (HIP runtime API)
+1. ROCm 7.2.3 documentation (HIP runtime API)
 2. MIOpen API reference
 3. hipBLAS API reference
 4. rocPRIM documentation

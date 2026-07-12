@@ -20,7 +20,7 @@ Shows two CUDA files translated to ROCm and validated on AMD MI300X:
 
 - Model: Gemma 4 12B via vLLM
 - GPU: AMD MI300X (gfx942)
-- ROCm: 7.2.4
+- ROCm: 7.2.3
 - Translation: hipify-clang + Gemma 4 12B
 
 ## Live demo

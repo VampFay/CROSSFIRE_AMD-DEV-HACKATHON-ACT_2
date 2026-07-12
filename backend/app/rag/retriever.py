@@ -78,12 +78,12 @@ class RAGRetriever:
                     self._collection = self._client.get_or_create_collection(
                         name="rocm_docs",
                         embedding_function=self._embedding_fn,
-                        metadata={"description": "ROCm 7.2.4 documentation and API references"},
+                        metadata={"description": "ROCm 7.2.3 documentation and API references"},
                     )
                 else:
                     self._collection = self._client.get_or_create_collection(
                         name="rocm_docs",
-                        metadata={"description": "ROCm 7.2.4 documentation and API references"},
+                        metadata={"description": "ROCm 7.2.3 documentation and API references"},
                     )
 
                 self._initialized = True
