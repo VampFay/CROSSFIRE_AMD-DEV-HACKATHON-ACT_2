@@ -4,7 +4,7 @@ LangGraph state machine for the CUDA-to-ROCm translation agent.
 States:
     analyze → translate → compile → run → diff → [done | debug → translate]
 
-CRITICAL FIXES vs. previous version:
+
   1. Iteration guard on the COMPILE path (not just diff). Previously a
      compile failure looped forever: compile → debug → translate → compile.
      Now should_run_after_compile checks max_iterations too.
@@ -12,7 +12,7 @@ CRITICAL FIXES vs. previous version:
   3. stub_mode propagated from model client to TranslationResult.
   4. VerificationLevel computed from actual evidence — never defaults to
      "validated" without proof.
-  5. 
+
 """
 from __future__ import annotations
 

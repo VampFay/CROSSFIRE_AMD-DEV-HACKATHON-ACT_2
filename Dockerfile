@@ -1,7 +1,7 @@
 # ============================================================
 # Crossfire Backend Dockerfile
 # ============================================================
-# Base: ROCm 7.2.4 + PyTorch 3.0 (Ubuntu 24.04, Python 3.11)
+# Base: ROCm 7.2.3 + PyTorch 2.6 (Ubuntu 24.04, Python 3.11)
 # Target: AMD Instinct MI300X (gfx942)
 
 FROM rocm/pytorch:rocm7.2.3_ubuntu24.04_py3.11_pytorch_3.0

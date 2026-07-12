@@ -4,7 +4,7 @@ Rate limiting middleware — protects demo from burning API credits.
 Implements a simple in-memory rate limiter (token bucket per client IP).
 For production, replace with Redis-backed limiter.
 
-Default: 10 requests per minute per IP, burst of 20.
+Default: 60 requests per minute per IP, burst of 100.
 """
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if tokens < 1:
             logger.warning(f"Rate limit exceeded for IP {client_ip}")
             return Response(
-                content='{"detail": "Rate limit exceeded. Max 10 requests per minute."}',
+                content='{"detail": "Rate limit exceeded. Rate limit exceeded."}',
                 status_code=429,
                 media_type="application/json",
                 headers={"Retry-After": "60"},

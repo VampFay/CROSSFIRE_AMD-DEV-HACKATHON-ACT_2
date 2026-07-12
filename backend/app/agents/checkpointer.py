@@ -9,7 +9,7 @@ SqliteSaver doesn't support LangGraph's async `ainvoke()`. Getting this right
 requires an async lifespan wrapper that complicates the FastAPI startup.
 
 For a hackathon, jobs complete in seconds — crash recovery is not critical.
-The graph compiles WITHOUT a checkpointer; jobs run normally, they just don
+The graph compiles WITHOUT a checkpointer; jobs run normally, they just don't
 persist across API restarts. This is the pragmatic trade-off.
 
 To re-enable: wrap the AsyncSqliteSaver context in an async startup/shutdown

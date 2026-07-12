@@ -6,7 +6,7 @@ Two-tier approach:
   2. Fallback to regex_hipify (deterministic regex swaps) — always works
 
 The LLM is only invoked when BOTH methods fail to produce compilable code.
-This is dramatically more reliable than asking a 7B model to rewrite CUDA
+This is more reliable than asking an LLM to rewrite CUDA
 from scratch.
 """
 from __future__ import annotations
@@ -94,7 +94,6 @@ async def _try_hipify_clang(
                 str(in_path),
                 "-o", str(out_path),
                 "--no-cuda-include",
-                "--examine",
             ]
         else:
             cmd = [hipify_bin, str(in_path)]
@@ -161,7 +160,7 @@ async def _try_hipify_clang(
 
 def hipify_available() -> bool:
     """Quick check if hipify is installed (or regex fallback is available)."""
-    return _find_hipify() is not None or True  # regex_hipify always available
+    return True  # regex_hipify always available as fallback
 
 
 # ============================================================

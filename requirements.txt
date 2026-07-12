@@ -3,7 +3,6 @@
 # ============================================================
 # Python 3.10+ required (ROCm 7.2 ships with Python 3.10/3.11)
 #
-# Dev-only deps (pytest, ruff, mypy) live in requirements-dev.txt
 
 # ---- Web Framework ----
 fastapi==0.115.6

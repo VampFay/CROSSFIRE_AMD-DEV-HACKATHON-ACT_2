@@ -4,7 +4,7 @@ LangGraph node implementations.
 Each node is an async function that takes AgentState and returns a partial
 state update. The graph in graph.py wires these together.
 
-FIXES vs. previous version:
+
   - stub_mode propagated from model client to state
   - GPU attestation captured at compile time (not just runtime metrics)
   - Baseline I/O moved to asyncio.to_thread (no event-loop blocking)
@@ -356,7 +356,7 @@ async def debug_node(state: AgentState) -> Dict[str, Any]:
     # Broadcast the NEXT iteration number (the one about to start)
     await broadcast(job_id, "status", {
         "state": "debugging",
-        "iteration": state["iteration"] + 1,  # ← was stale (off-by-one)
+        "iteration": state["iteration"] + 1,
     })
 
     feedback_parts = []

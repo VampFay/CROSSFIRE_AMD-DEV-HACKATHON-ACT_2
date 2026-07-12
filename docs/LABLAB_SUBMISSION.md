@@ -69,7 +69,7 @@ amd-rocm, fireworks-ai, gemma, langgraph, vllm, code-translation, ai-agents, roc
 
 ## Field 7: Slide Presentation
 - **File**: `docs/pitch_deck.pdf`
-- **Source**: `docs/pitch_deck.html`
+- **Source**: `docs/pitch_deck.pdf`
 - **Pages**: 11 slides
 - **Format**: PDF
 - **Size**: ~476 KB

@@ -3,7 +3,7 @@ vLLM client — for local model calls (Gemma 4 12B via vLLM).
 
 Served via vLLM on AMD MI300X. Local tokens are FREE per hackathon rules.
 
-CRITICAL DESIGN RULES (Phase 0 of the rebuild):
+
   1. ALLOW_STUB_FALLBACK defaults to FALSE. A regex swap is NOT a translation.
   2. Connection errors ARE retried by the @retry decorator (the local try/except
      no longer swallows them — it only catches AFTER retries are exhausted).

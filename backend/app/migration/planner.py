@@ -1,16 +1,8 @@
 """
-Migration engine — repository-level CUDA→ROCm migration planner.
+Repository-level CUDA→ROCm migration planner.
 
-Phase 3 of the rebuild. Understands a repository as a graph of files,
-builds, and dependencies — not just a batch of files to translate.
-
-Modules:
-  - inventory.py: discover files, build systems, tests
-  - build_detector.py: detect CMake/Make/Bazel
-  - dependency_graph.py: #include graph between translation units
-  - capability_matrix.py: which CUDA features are supported
-  - planner.py: produce a MigrationPlan before any code is modified
-  - patch_manager.py: produce a git-style patch of all changes
+Analyzes a repository structure, detects CUDA features, classifies
+files by migration strategy, and produces a MigrationPlan.
 """
 from __future__ import annotations
 

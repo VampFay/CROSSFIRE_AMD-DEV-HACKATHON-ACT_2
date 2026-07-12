@@ -5,7 +5,7 @@ When the agent successfully translates a CUDA file, the result is cached.
 On subsequent requests with the same (or similar) CUDA source, the cached
 translation is returned instantly — no model call, no compile, no run.
 
-This creates the "watch it learn" demo moment: the first cuDNN translation
+Translation memory cache for repeated requests: the first cuDNN translation
 takes 90 seconds, but the second identical request returns in <100ms.
 
 Cache key: SHA256 hash of normalized CUDA source.

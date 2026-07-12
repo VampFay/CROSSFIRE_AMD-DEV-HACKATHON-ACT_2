@@ -472,54 +472,6 @@ async function loadStats() {
   } catch (e) { console.error('loadStats:', e); }
 }
 
-// ===== Translate (sync fallback — kept for debugging, not shown in UI) =====
-async function translateSync() {
-  const cuda = document.getElementById('cudaInput').value.trim();
-  if (!cuda) { alert('Please enter CUDA source code.'); return; }
-  const btn = document.getElementById('translateBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Translating…';
-  document.getElementById('outputBody').innerHTML = '<div class="placeholder"><div class="spinner" style="width:32px;height:32px;margin:0 auto 12px"></div><p>Translating (sync mode)…</p></div>';
-  document.getElementById('liveStatus').innerHTML = '';
-  document.getElementById('elapsedTime').textContent = '';
-  addStatusLine('Sync translate started — waiting for response...');
-  startElapsedTimer();
-  const ind = document.getElementById('wsIndicator');
-  const indText = document.getElementById('wsText');
-  indText.textContent = 'sync mode';
-  ind.classList.add('connected');
-
-  try {
-    const body = {
-      cuda_source: cuda,
-      filename: document.getElementById('sampleSelect').value || 'input.cu',
-      force_remote: document.getElementById('forceRemote').checked,
-      max_iterations: parseInt(document.getElementById('maxIter').value) || 5,
-    };
-    const res = await fetch(`${API}/api/translate-sync`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errText.slice(0,300)}`);
-    }
-    const r = await res.json();
-    stopElapsedTimer();
-    if (r.total_latency_ms > 0) {
-      const secs = (r.total_latency_ms / 1000).toFixed(1);
-      document.getElementById('elapsedTime').textContent = `✓ ${secs}s (${r.total_tokens} tokens)`;
-    }
-    addStatusLine(`Sync translate complete — status=${r.status}`);
-    renderResult(r);
-    loadStats();
-  } catch (e) {
-    console.error('sync translate error:', e);
-    stopElapsedTimer();
-    addStatusLine('ERROR: ' + e.message, true);
-    document.getElementById('outputBody').innerHTML = `<div class="placeholder"><p style="color:var(--red)">Error: ${e.message}</p></div>`;
-  } finally {
-    document.getElementById('translateBtn').disabled = false;
-  }
-}
 
 // ===== Translate =====
 let elapsedTimer = null;

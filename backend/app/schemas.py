@@ -1,7 +1,7 @@
 """
 Pydantic schemas for API request/response models.
 
-Core design principle (Phase 0 of the rebuild):
+
 Every result carries a VerificationLevel that maps to actual evidence.
 No stub or cached result can masquerade as a GPU-validated result.
 """
@@ -113,7 +113,7 @@ class TranslateRepoRequest(BaseModel):
 
 
 # ============================================================
-# Job Budget (Phase 4 — bounded agent loop)
+# Job Budget 
 # ============================================================
 
 class JobBudget(BaseModel):
@@ -218,7 +218,7 @@ class IterationRecord(BaseModel):
 
 class GPUAttestation(BaseModel):
     """
-    Cryptographic-style evidence that the run happened on real AMD hardware.
+    Hardware and toolchain evidence captured at compile time.
     Captured at compile + run time, stored with every result.
     """
     gpu_model: str = ""
@@ -246,7 +246,7 @@ class GPUMetrics(BaseModel):
 
 
 class BenchmarkResult(BaseModel):
-    """Real benchmark numbers — no Math.random."""
+    """Benchmark results from repeated runs."""
     cuda_median_ms: Optional[float] = None
     cuda_p90_ms: Optional[float] = None
     cuda_p95_ms: Optional[float] = None

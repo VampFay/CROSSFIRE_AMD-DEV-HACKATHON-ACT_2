@@ -227,7 +227,7 @@ async def health():
         amd_gpu_available=amd_available,
         vllm_available=vllm_available,
         fireworks_configured=bool(settings.fireworks_api_key),
-        chroma_available=settings.chroma_available,  # ← was `or True` (always True)
+        chroma_available=settings.chroma_available,
         sandbox_available=sandbox_available,
         hipify_available=hipify_available,
         uptime_seconds=uptime,
