@@ -8,7 +8,7 @@ Thanks for your interest in contributing to Crossfire! This document covers the 
 
 - Python 3.10+
 - Docker 24+ with Docker Compose v2
-- (Optional) AMD GPU with ROCm 7.2.4 support
+- (Optional) AMD GPU with ROCm 7.2.3 support
 
 ### Quick Start
 
